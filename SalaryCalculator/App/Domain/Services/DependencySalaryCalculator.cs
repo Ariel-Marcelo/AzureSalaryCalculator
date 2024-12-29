@@ -1,4 +1,3 @@
-using SalaryCalculator.App.Shared.Constants;
 
 namespace SalaryCalculator.App.Domain.Services;
 
