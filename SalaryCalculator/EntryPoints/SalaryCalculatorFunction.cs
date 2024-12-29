@@ -16,7 +16,7 @@ namespace SalaryCalculator.EntryPoints
         private readonly ILogger<SalaryCalculatorFunction> _logger = logger;
 
         [Function("SalaryCalculator")]
-        public async Task<ActionResult> RunSalaryCalculatorFunction([HttpTrigger(AuthorizationLevel.Function, "post", "get", Route = "salary")] HttpRequestData req)
+        public async Task<ActionResult> RunSalaryCalculatorFunction([HttpTrigger(AuthorizationLevel.Function, "post", Route = "salary")] HttpRequestData req)
         {
             try
             {
