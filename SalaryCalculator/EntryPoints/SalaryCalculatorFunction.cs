@@ -11,9 +11,14 @@ using SalaryCalculator.EntryPoints.Dto;
 
 namespace SalaryCalculator.EntryPoints
 {
-    public class SalaryCalculatorFunction(ILogger<SalaryCalculatorFunction> logger)
+    public class SalaryCalculatorFunction
     {
-        private readonly ILogger<SalaryCalculatorFunction> _logger = logger;
+        private readonly ILogger<SalaryCalculatorFunction> _logger;
+        
+        public SalaryCalculatorFunction(ILogger<SalaryCalculatorFunction> logger)
+        {
+            _logger = logger;
+        }
 
         [Function("SalaryCalculator")]
         public async Task<ActionResult> RunSalaryCalculatorFunction([HttpTrigger(AuthorizationLevel.Function, "post", Route = "salary")] HttpRequestData req)
