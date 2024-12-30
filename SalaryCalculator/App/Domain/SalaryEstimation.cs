@@ -2,34 +2,34 @@ namespace SalaryCalculator.App.Domain;
 
 public class SalaryEstimation
 {
-    public decimal TotalMonthAmount { get; set; }
+    public decimal EnterpriseMonthAmount { get; set; }
 
     public decimal LiquidityMonthAmount { get; set; }
-    
-    public decimal TotalAmountInTime { get; set; }
-    
-    public decimal LiquidityAmountInTime { get; set; }
-    
-    public IEnumerable<object> Details { get; set; }
+
+    public decimal IeesSalary { get; set; }
 
     public DateOnly StartDate { get; set; }
     
     public DateOnly FinalDate { get; set; }
     
+    public decimal EnterpriseAmountInTime { get; set; }
+
+    public decimal LiquidityAmountInTime { get; set; }
+    
     public int DaysWorked { get; set; }
-    
+
     public int MonthsWorked { get; set; }
-    
+
     public int YearsWorked { get; set; }
-    
-    public decimal IeesSalary { get; set; }
-    
-    
+
+
+    public IEnumerable<object> Details { get; set; }
+
     private SalaryEstimation(
-        decimal totalMonthAmount,
+        decimal enterpriseMonthAmount,
         decimal liquidityMonthAmount,
         IEnumerable<object> benefitsPerMonth,
-        decimal totalAmountInTime,
+        decimal enterpriseAmountInTime,
         decimal liquidityAmountInTime,
         decimal ieesSalary,
         DateOnly startDate,
@@ -39,10 +39,10 @@ public class SalaryEstimation
         int yearsWorked
     )
     {
-        TotalMonthAmount = totalMonthAmount;
+        EnterpriseMonthAmount = enterpriseMonthAmount;
         LiquidityMonthAmount = liquidityMonthAmount;
         Details = benefitsPerMonth;
-        TotalAmountInTime = totalAmountInTime;
+        EnterpriseAmountInTime = enterpriseAmountInTime;
         LiquidityAmountInTime = liquidityAmountInTime;
         StartDate = startDate;
         FinalDate = finalDate;
@@ -103,10 +103,5 @@ public class SalaryEstimation
             finalDate.Month - startDate.Month,
             finalDate.Year - startDate.Year
         );
-    }
-
-    public override string ToString()
-    {
-        return TotalMonthAmount.ToString("C");
     }
 }

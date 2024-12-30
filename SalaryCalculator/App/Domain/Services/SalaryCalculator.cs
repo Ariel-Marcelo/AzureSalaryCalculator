@@ -11,7 +11,7 @@ public abstract class SalaryCalculator
             : 0;
         
         var daysLastMonth = finalDate.Day;
-        decimal dayAmount = (daysLastMonth + daysFirstMonth) /
+        var dayAmount = (daysLastMonth + daysFirstMonth) /
                         (decimal)DateTime.DaysInMonth(finalDate.Year, finalDate.Month);
 
         return (yearsAmount + monthAmount + dayAmount) * amountPerMonth;
