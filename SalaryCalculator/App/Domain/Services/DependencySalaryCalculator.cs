@@ -1,12 +1,9 @@
+using SalaryCalculator.App.Shared.Utils.Domain;
 
 namespace SalaryCalculator.App.Domain.Services;
 
-public class DependencySalaryCalculator: SalaryCalculator
+public class DependencySalaryCalculator
 {
-    private const decimal TAX_WORKER = 9.45m;
-    private const decimal TAX_EMPLOYER = 11.15m;
-    private const decimal SBU = 470;
-
     public SalaryEstimation Calculate(
         decimal salarySigned,
         decimal bonus,
@@ -15,26 +12,38 @@ public class DependencySalaryCalculator: SalaryCalculator
         bool accumulatedBenefits
     )
     {
-        var taxAmount = salarySigned * (TAX_WORKER / 100);
-        var liquidityAmountPerMonth = salarySigned - taxAmount + bonus;
-
-        var taxEmployer = salarySigned * (TAX_EMPLOYER / 100);
-        var totalAmountPerMonth = salarySigned + taxEmployer + bonus;
-
-        var liquidityAmountInTime = GetTotalAmountInTime(initialDate, finalDate, liquidityAmountPerMonth);
-        var totalAmountInTime = GetTotalAmountInTime(initialDate, finalDate, totalAmountPerMonth);
-
-        var benefitsPerMonth = CalculateBenefits(
-            DateOnly.FromDateTime(DateTime.Now),
-            DateOnly.FromDateTime(DateTime.Now).AddMonths(1),
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        var benefitsPerMonth = GetLawBenefits(
+            new DateOnly(today.Year, today.Month, 1),
+            new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month)),
             salarySigned);
-        var benefitsInTime = CalculateBenefits(initialDate, finalDate, salarySigned);
-        
+
+        var benefitsInTime = GetLawBenefits(initialDate, finalDate, salarySigned);
+
+        var liquidityAmountPerMonth =
+            salarySigned - GetContribution(Salary.Dependency[SalaryKeys.WorkerContributionPercent], salarySigned) +
+            bonus;
+        liquidityAmountPerMonth += (!accumulatedBenefits ? benefitsPerMonth : 0m);
+
+        var employerAmountPerMonth =
+            salarySigned + GetContribution(Salary.Dependency[SalaryKeys.EmployerContributionPercent], salarySigned) +
+            bonus + benefitsPerMonth;
+
+        var liquidityAmountInTime = ProportionalCalculator.GetTotalAmountInTime(
+            initialDate,
+            finalDate,
+            liquidityAmountPerMonth);
+
+        var employerAmountInTime = ProportionalCalculator.GetTotalAmountInTime(
+            initialDate,
+            finalDate,
+            employerAmountPerMonth);
+
         return SalaryEstimation.CreateForDependencyContract(
-            liquidityAmountPerMonth + (!accumulatedBenefits ? benefitsPerMonth : 0m),
-            totalAmountPerMonth + benefitsPerMonth,
-            liquidityAmountInTime + (!accumulatedBenefits ? benefitsInTime : 0m),
-            totalAmountInTime + benefitsInTime,
+            liquidityAmountPerMonth,
+            employerAmountPerMonth,
+            liquidityAmountInTime,
+            employerAmountInTime,
             [
                 new { month = accumulatedBenefits ? Math.Round(benefitsPerMonth, 2) : 0m },
                 new { periodChoose = accumulatedBenefits ? Math.Round(benefitsInTime, 2) : 0m }
@@ -45,26 +54,25 @@ public class DependencySalaryCalculator: SalaryCalculator
         );
     }
 
-    private decimal CalculateBenefits(DateOnly initialDate, DateOnly finalDate, decimal salarySigned)
+    private decimal GetLawBenefits(DateOnly initialDate, DateOnly finalDate, decimal salarySigned)
     {
-        var dayInStartMonth = DateTime.DaysInMonth(initialDate.Year, initialDate.Month);
-        var dayInEndMonth = DateTime.DaysInMonth(finalDate.Year, finalDate.Month);
-        var monthProportionFirstMonth = (dayInStartMonth - initialDate.Day) / dayInStartMonth;
-        var monthProportionLastMonth = finalDate.Day / dayInEndMonth;
+        var monthsWorked = ProportionalCalculator.GetMonthsProportionYears(initialDate, finalDate)
+                           + ProportionalCalculator.GetMonths(initialDate, finalDate)
+                           + ProportionalCalculator.GetMonthsProportionDays(initialDate, finalDate);
 
-        var monthsWorked = (finalDate.Year - initialDate.Year) * 12
-                           + (finalDate.Month - initialDate.Month)
-                           + monthProportionFirstMonth
-                           + monthProportionLastMonth;
-        
-        return CalculateChristmasBonus(monthsWorked, salarySigned) 
+        return CalculateChristmasBonus(monthsWorked, salarySigned)
                + CalculateScholarBonus(monthsWorked)
                + CalculateVacationBonus(monthsWorked, salarySigned);
     }
 
+    private static decimal GetContribution(decimal contributionPercent, decimal salarySigned)
+    {
+        return salarySigned * (contributionPercent / 100);
+    }
+
     private decimal CalculateScholarBonus(decimal monthsWorked)
     {
-        return SBU * monthsWorked / 12;
+        return Salary.Dependency[SalaryKeys.Sbu] * monthsWorked / 12;
     }
 
     private decimal CalculateChristmasBonus(decimal monthsWorked, decimal salarySigned)
@@ -74,7 +82,11 @@ public class DependencySalaryCalculator: SalaryCalculator
 
     private decimal CalculateVacationBonus(decimal monthsWorked, decimal salarySigned)
     {
-        var x = (0.5m/12m) * (monthsWorked);
-        return salarySigned * x;
+        const int DaysInMonth = 30;
+        const int MonthsInYear = 12;
+        const int VacationDays = 15;
+        var vacationBonusPerYear = VacationDays * (salarySigned / DaysInMonth);
+        var vacationBonusPerMonthsWorked = (MonthsInYear * monthsWorked) / (vacationBonusPerYear);
+        return vacationBonusPerMonthsWorked;
     }
 }

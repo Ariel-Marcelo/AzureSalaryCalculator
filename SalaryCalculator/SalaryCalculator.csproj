@@ -31,5 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App\Infrastructure\" />
+    <Folder Include="App\Shared\Utils\Infrastructure\" />
   </ItemGroup>
 </Project>

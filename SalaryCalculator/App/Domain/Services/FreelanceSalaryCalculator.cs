@@ -1,34 +1,58 @@
+using SalaryCalculator.App.Shared.Utils.Domain;
+
 namespace SalaryCalculator.App.Domain.Services;
 
-public class FreelanceSalaryCalculator: SalaryCalculator
+public class FreelanceSalaryCalculator
 {
-    private const decimal TAX_PERCENT = 15;
-    private const decimal TAX_WORKER = 20m;
-
     public SalaryEstimation Calculate(
         decimal salarySigned,
         bool taxIncluded,
-        decimal ieesSalary,
+        decimal contributionSalary,
         DateOnly initialDate,
         DateOnly finalDate
     )
     {
-        var taxIees = ieesSalary * (TAX_WORKER / 100m);
-        var taxReverse = taxIncluded ? 100 /(100 + TAX_PERCENT) : 1;
-        var liquidityPerMonthAmount = salarySigned * taxReverse;
-        var liquidityAmountInTime = GetTotalAmountInTime(initialDate, finalDate, liquidityPerMonthAmount);
-        
+        var taxReverseWorkerPercent = taxIncluded
+            ? 100m / (100m + Salary.Freelance[SalaryKeys.TaxWorkerPercent])
+            : 1;
+
+        var liquidityPerMonthAmount = salarySigned * taxReverseWorkerPercent;
+
+        var employerAmountPerMonth = taxIncluded
+            ? salarySigned
+            : liquidityPerMonthAmount * ((100 + Salary.Freelance[SalaryKeys.TaxWorkerPercent]) / 100m);
+
+        if (contributionSalary > 0)
+        {
+            var contributionAmount =
+                contributionSalary * (Salary.Freelance[SalaryKeys.WorkerContributionPercent] / 100m);
+            liquidityPerMonthAmount -= contributionAmount;
+        }
+
+        var liquidityAmountInTime = ProportionalCalculator.GetTotalAmountInTime(
+            initialDate,
+            finalDate,
+            liquidityPerMonthAmount);
+
+        var employerAmountInTime = ProportionalCalculator.GetTotalAmountInTime(
+            initialDate,
+            finalDate,
+            employerAmountPerMonth);
+
         return SalaryEstimation.CreateForFreelanceContract(
-            taxIncluded ? salarySigned : liquidityPerMonthAmount * ( (100 + TAX_PERCENT) / 100m),
-            liquidityPerMonthAmount - taxIees,
-            liquidityAmountInTime * ( (100 + TAX_PERCENT) / 100m),
+            employerAmountPerMonth,
+            liquidityPerMonthAmount,
+            employerAmountInTime,
             liquidityAmountInTime,
             [
-                new { services = taxIncluded 
-                        ? -(salarySigned - liquidityPerMonthAmount) 
-                        : -(salarySigned * TAX_PERCENT / 100) }
+                new
+                {
+                    services = taxIncluded
+                        ? -(salarySigned - liquidityPerMonthAmount)
+                        : -(salarySigned * Salary.Freelance[SalaryKeys.TaxWorkerPercent] / 100)
+                }
             ],
-            ieesSalary,
+            contributionSalary,
             initialDate,
             finalDate
         );

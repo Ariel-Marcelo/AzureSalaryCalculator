@@ -24,7 +24,7 @@ public class SalaryCalculatorUseCase
             return service.Calculate(
                 request.SalarySigned ?? 0,
                 request.IvaIncluded,
-                request.IeesSalary,
+                request.IeesSalary ?? 0,
                 request.InitDate,
                 request.EndDate
             );
