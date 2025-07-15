@@ -15,7 +15,9 @@ public class SalaryCalculatorUseCase
                 request.SalaryBonus,
                 request.InitDate,
                 request.EndDate,
-                request.AccumulatedBenefits
+                request.AccumulatedBenefits,
+                request.Utilities,
+                request.HasReserveFunds
             );
         }
         else

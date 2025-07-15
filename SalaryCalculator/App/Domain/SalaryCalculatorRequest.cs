@@ -29,9 +29,13 @@ namespace SalaryCalculator.App.Domain
         public bool AccumulatedBenefits { get; set; } = true;
 
         public bool IvaIncluded { get; set; } = false;
-        
+
         [CurrencyAnnotation(FieldName = nameof(IeesSalary))]
         [Range(475.0, (double)decimal.MaxValue, ErrorMessage = $"{nameof(IeesSalary)} debe ser mayor a 475")]
         public decimal? IeesSalary { get; set; } = null;
+
+        public decimal Utilities { get; set; } = 0;
+        
+        public bool HasReserveFunds { get; set; } = false;
     }
 }

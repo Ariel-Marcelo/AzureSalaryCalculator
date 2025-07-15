@@ -9,21 +9,25 @@ public class DependencySalaryCalculator
         decimal bonus,
         DateOnly initialDate,
         DateOnly finalDate,
-        bool accumulatedBenefits
+        bool accumulatedBenefits,
+        decimal utilities,
+        bool hasReserveFunds
     )
     {
-        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
-        var benefitsPerMonth = GetLawBenefits(
-            new DateOnly(today.Year, today.Month, 1),
-            new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month)),
-            salarySigned);
+        var benefitsPerMonth = GetLawBenefits(salarySigned, 1, hasReserveFunds);
+        var monthsInTime = ProportionalCalculator.GetMonthsProportionYears(initialDate, finalDate)
+                           + ProportionalCalculator.GetMonths(initialDate, finalDate)
+                           + ProportionalCalculator.GetMonthsProportionDays(initialDate, finalDate);
+        var benefitsInTime = GetLawBenefits(salarySigned, monthsInTime, hasReserveFunds);
 
-        var benefitsInTime = GetLawBenefits(initialDate, finalDate, salarySigned);
+        var utilitiesPerMonth = CalculateUtilities(1, utilities);
+        var utilitiesInTime = CalculateUtilities(monthsInTime, utilities);
+
 
         var liquidityAmountPerMonth =
             salarySigned - GetContribution(Salary.Dependency[SalaryKeys.WorkerContributionPercent], salarySigned) +
             bonus;
-        liquidityAmountPerMonth += (!accumulatedBenefits ? benefitsPerMonth : 0m);
+        liquidityAmountPerMonth += !accumulatedBenefits ? benefitsPerMonth : 0m;
 
         var employerAmountPerMonth =
             salarySigned + GetContribution(Salary.Dependency[SalaryKeys.EmployerContributionPercent], salarySigned) +
@@ -50,19 +54,28 @@ public class DependencySalaryCalculator
             ],
             salarySigned,
             initialDate,
-            finalDate
+            finalDate,
+            utilitiesPerMonth,
+            utilitiesInTime
         );
     }
 
-    private decimal GetLawBenefits(DateOnly initialDate, DateOnly finalDate, decimal salarySigned)
+    private decimal GetLawBenefits(decimal salarySigned, decimal monthsWorked, bool hasReservFounds)
     {
-        var monthsWorked = ProportionalCalculator.GetMonthsProportionYears(initialDate, finalDate)
-                           + ProportionalCalculator.GetMonths(initialDate, finalDate)
-                           + ProportionalCalculator.GetMonthsProportionDays(initialDate, finalDate);
-
         return CalculateChristmasBonus(monthsWorked, salarySigned)
                + CalculateScholarBonus(monthsWorked)
-               + CalculateVacationBonus(monthsWorked, salarySigned);
+               + CalculateVacationBonus(monthsWorked, salarySigned)
+               + (hasReservFounds ? CalculateReservFounds(salarySigned) : 0);
+    }
+
+    private decimal CalculateReservFounds(decimal salary)
+    {
+        return salary * 8.33m / 100;
+    }
+
+    private decimal CalculateUtilities(decimal monthsWorked, decimal utilities)
+    {
+        return utilities * monthsWorked / 12;
     }
 
     private static decimal GetContribution(decimal contributionPercent, decimal salarySigned)
@@ -77,7 +90,7 @@ public class DependencySalaryCalculator
 
     private decimal CalculateChristmasBonus(decimal monthsWorked, decimal salarySigned)
     {
-        return (salarySigned * monthsWorked) / 12;
+        return salarySigned * monthsWorked / 12;
     }
 
     private decimal CalculateVacationBonus(decimal monthsWorked, decimal salarySigned)
@@ -86,7 +99,7 @@ public class DependencySalaryCalculator
         const int MonthsInYear = 12;
         const int VacationDays = 15;
         var vacationBonusPerYear = VacationDays * (salarySigned / DaysInMonth);
-        var vacationBonusPerMonthsWorked = (MonthsInYear * monthsWorked) / (vacationBonusPerYear);
+        var vacationBonusPerMonthsWorked = MonthsInYear * monthsWorked / vacationBonusPerYear;
         return vacationBonusPerMonthsWorked;
     }
 }

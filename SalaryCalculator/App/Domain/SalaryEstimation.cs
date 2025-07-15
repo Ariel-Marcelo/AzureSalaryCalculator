@@ -1,3 +1,5 @@
+using Microsoft.Net.Http.Headers;
+
 namespace SalaryCalculator.App.Domain;
 
 public class SalaryEstimation
@@ -22,6 +24,9 @@ public class SalaryEstimation
 
     public int YearsWorked { get; set; }
 
+    public decimal UtilitiesPerMonth { get; set; }
+
+    public decimal UtilitiesInTime { get; set; }
 
     public IEnumerable<object> Details { get; set; }
 
@@ -36,7 +41,9 @@ public class SalaryEstimation
         DateOnly finalDate,
         int daysWorked,
         int monthsWorked,
-        int yearsWorked
+        int yearsWorked,
+        decimal utilitiesPerMonth,
+        decimal utilitiesInTime
     )
     {
         EnterpriseMonthAmount = enterpriseMonthAmount;
@@ -50,7 +57,8 @@ public class SalaryEstimation
         DaysWorked = daysWorked;
         MonthsWorked = monthsWorked;
         YearsWorked = yearsWorked;
-        
+        UtilitiesPerMonth = utilitiesPerMonth;
+        UtilitiesInTime = utilitiesInTime;
     }
 
     public static SalaryEstimation CreateForFreelanceContract(
@@ -75,7 +83,9 @@ public class SalaryEstimation
             finalDate,
             finalDate.Day - startDate.Day + 1,
             finalDate.Month - startDate.Month,
-            finalDate.Year - startDate.Year
+            finalDate.Year - startDate.Year,
+            0,
+            0
         );
     }
 
@@ -87,7 +97,9 @@ public class SalaryEstimation
         IEnumerable<object> benefitsPerMonth,
         decimal ieesSalary,
         DateOnly startDate,
-        DateOnly finalDate
+        DateOnly finalDate,
+        decimal utilitiesPerMonth,
+        decimal utilitiesInTime
     )
     {
         return new SalaryEstimation(
@@ -101,7 +113,9 @@ public class SalaryEstimation
             finalDate,
             finalDate.Day - startDate.Day + 1,
             finalDate.Month - startDate.Month,
-            finalDate.Year - startDate.Year
+            finalDate.Year - startDate.Year,
+            Math.Round(utilitiesPerMonth, 2),
+            Math.Round(utilitiesInTime, 2)
         );
     }
 }
