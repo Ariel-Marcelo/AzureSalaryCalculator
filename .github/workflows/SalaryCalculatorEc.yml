@@ -49,3 +49,7 @@ jobs:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+    - name: List published files
+      run: |
+        ls -R '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+      shell: bash
