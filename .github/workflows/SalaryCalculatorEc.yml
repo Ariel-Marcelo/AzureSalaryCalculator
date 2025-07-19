@@ -29,7 +29,14 @@ jobs:
     - name: Build
       run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Publish
-      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --output "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/publish_output"
+    - name: Fix Publish Structure
+      run: |
+        echo "Moviendo archivos a la raíz del paquete..."
+        mv "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/publish_output"/* "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+        rmdir "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/publish_output"
+        echo "Estructura corregida:"
+        ls -la "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
