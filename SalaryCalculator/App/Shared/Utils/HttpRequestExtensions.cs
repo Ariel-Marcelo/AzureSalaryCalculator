@@ -29,7 +29,7 @@ namespace SalaryCalculator.App.Shared.Utils
                 {
                     throw new BindingException("Campos Invalidos", modelState.errors );
                 }
-                return model;
+                return model ?? throw new BindingException("El modelo no puede ser nulo");
             }
             catch (BindingException)
             {
