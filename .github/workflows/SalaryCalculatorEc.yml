@@ -10,6 +10,7 @@ env:
   DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: SalaryCalculator
   DOTNET_CORE_VERSION_INPROC: 8.0.x
+  FUNCTIONS_WORKER_RUNTIME: dotnet-isolated 
 jobs:
   build:
     runs-on: ubuntu-latest
