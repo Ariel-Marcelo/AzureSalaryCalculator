@@ -34,8 +34,10 @@ jobs:
     - name: Fix Publish Structure
       run: |
         echo "Moviendo archivos a la raíz del paquete..."
-        mv "${{ env.PACKAGE_PATH_ABSOLUTE }}/publish_output"/* "${{ env.PACKAGE_PATH_ABSOLUTE }}"
-        rmdir "${{ env.PACKAGE_PATH_ABSOLUTE }}/publish_output"
+        shopt -s dotglob
+        echo "Moviendo archivos a la raíz del paquete..."
+        mv "${{ env.PACKAGE_PATH_ABSOLUTE }}/publish_output/"* "${{ env.PACKAGE_PATH_ABSOLUTE }}"
+        rmdir "${{ env.PACKAGE_PATH_ABSOLUTE }}/publish_output" || echo "Directorio no vacío, no se pudo eliminar"
         echo "Estructura corregida:"
         ls -la "${{ env.PACKAGE_PATH_ABSOLUTE }}"
     - name: Publish Artifacts
